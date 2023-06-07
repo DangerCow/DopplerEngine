@@ -131,8 +131,17 @@ public class Window
                 SetConfigFlags(ConfigFlags.FLAG_VSYNC_HINT);
         }
     }
+    
+    public Scene? CurrentScene { get; internal set; }
+    
+    public void SetScene(Scene scene)
+    {
+        CurrentScene!.Dispose();
+        CurrentScene = scene;
+        CurrentScene.Init();
+    }
 
-    public void Open()
+    public void Open(Scene initialScene = null)
     {
         InitWindow(WindowSettings.Width, WindowSettings.Height, WindowSettings.Title);
         if (WindowSettings.Fullscreen)
@@ -145,17 +154,34 @@ public class Window
         WindowSettings.TargetFps = monitorRefreshRate;
 
         InitAudioDevice();
+        
+        if (initialScene != null)
+            CurrentScene = initialScene;
     }
 
     public void Run()
     {
+        CurrentScene!.Init();
+        
         while (WindowSettings.IsOpen)
         {
+            CurrentScene!.Update();
+            
             BeginDrawing();
             {
                 ClearBackground(BLACK);
+                
+                CurrentScene!.Draw();
             }
             EndDrawing();
         }
+        
+        Close();
+    }
+
+    public void Close()
+    {
+        CurrentScene!.Dispose();
+        CloseWindow();
     }
 }
